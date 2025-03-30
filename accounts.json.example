@@ -1,0 +1,10 @@
+[
+  {
+    "refreshToken": "hesap1_refresh_token",
+    "nodeToken": []
+  },
+  {
+    "refreshToken": "hesap2_refresh_token",
+    "nodeToken": []
+  }
+]
