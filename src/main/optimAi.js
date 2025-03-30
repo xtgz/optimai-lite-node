@@ -8,6 +8,10 @@ const ProxyManager = require('./proxy');
 const userAgent = new UserAgent();
 const BROWSERS = ["chrome", "firefox", "edge", "opera", "brave"];
 
+const API_URL = process.env.API_URL || 'https://api.optimai.network';
+const WS_URL = process.env.WS_URL || 'wss://ws.optimai.network';
+const PING_INTERVAL = parseInt(process.env.PING_INTERVAL) || 300000; // 5 dakika
+
 class OptimAi {
     constructor(account, proxy = null, currentNum, total) {
         this.account = account;
@@ -21,8 +25,8 @@ class OptimAi {
             ...(this.proxy && { httpsAgent: this.proxyManager.getProxyAgent(this.proxy, this.currentNum, this.total) }),
             headers: {
                 "User-Agent": userAgent.toString(),
-                origin: "https://node.optimai.network",
-                Referer: "https://node.optimai.network"
+                origin: API_URL,
+                Referer: API_URL
             }
         };
     }
@@ -64,7 +68,7 @@ class OptimAi {
             refresh_token: this.account.refreshToken,
         }
         try {
-            const response = await this.makeRequest("POST", "https://api.optimai.network/auth/refresh", { data: payload });
+            const response = await this.makeRequest("POST", `${API_URL}/auth/refresh`, { data: payload });
             if (response?.status === 200) {
                 logMessage(this.currentNum, this.total, "Access token retrieved successfully", "success");
                 this.token = response.data.access_token;
@@ -97,7 +101,7 @@ class OptimAi {
         };
 
         try {
-            const response = await this.makeRequest("POST", "https://api.optimai.network/devices/register", { headers, data: payload });
+            const response = await this.makeRequest("POST", `${API_URL}/devices/register`, { headers, data: payload });
             if (response?.status === 200) {
                 logMessage(this.currentNum, this.total, "Node registered successfully", "success");
                 return response.data.ws_auth_token;
@@ -111,13 +115,14 @@ class OptimAi {
 
     async connectWebSocket(wsToken) {
         logMessage(this.currentNum, this.total, "Connecting to WebSocket...", "info");
-        const url = `wss://ws.optimai.network/?token=${wsToken}`;
+        const url = `${WS_URL}/?token=${wsToken}`;
         const wsOptions = this.proxy ? { agent: this.proxyManager.getProxyAgent(this.proxy, this.currentNum, this.total) } : undefined;
         this.ws = new WebSocket(url, wsOptions);
         this.wsToken = wsToken;
 
         this.ws.on('open', () => {
             logMessage(this.currentNum, this.total, `Node connected for ${this.currentNum}`, "success");
+            this.startPing();
         });
 
         this.ws.on('message', (message) => {
@@ -135,7 +140,20 @@ class OptimAi {
         });
     }
 
+    startPing() {
+        this.pingInterval = setInterval(() => {
+            if (this.ws.readyState === WebSocket.OPEN) {
+                this.ws.ping();
+                logMessage(this.currentNum, this.total, "Ping sent", "info");
+            }
+        }, PING_INTERVAL);
+    }
+
     reconnectWebSocket() {
+        if (this.pingInterval) {
+            clearInterval(this.pingInterval);
+        }
+        
         setTimeout(() => {
             if (this.wsToken) {
                 logMessage(this.currentNum, this.total, "Reconnecting WebSocket...", "info");
@@ -155,7 +173,7 @@ class OptimAi {
         };
 
         try {
-            const response = await this.makeRequest("GET", 'https://api.optimai.network/dashboard/stats', { headers: headers });
+            const response = await this.makeRequest("GET", `${API_URL}/dashboard/stats`, { headers: headers });
             if (response?.status === 200) {
                 console.log("-".repeat(85));
                 logMessage(this.currentNum, this.total, `Stats Account : `, "info");
@@ -186,7 +204,7 @@ class OptimAi {
         }
 
         try {
-            const response = await this.makeRequest("POST", 'https://api.optimai.network/daily-tasks/check-in', { headers: headers });
+            const response = await this.makeRequest("POST", `${API_URL}/daily-tasks/check-in`, { headers: headers });
             if (response?.status === 200) {
                 logMessage(this.currentNum, this.total, "Checked in successfully", "success");
             }
