@@ -6,11 +6,15 @@
   "scripts": {
     "start": "node index.js"
   },
-  "author": "getcakedieyoungx",
-  "license": "MIT",
   "dependencies": {
     "axios": "^1.6.7",
+    "chalk": "^4.1.2",
     "dotenv": "^16.4.1",
-    "node-cron": "^3.0.3"
-  }
+    "https-proxy-agent": "^7.0.2",
+    "socks-proxy-agent": "^8.0.2",
+    "ws": "^8.16.0",
+    "user-agents": "^1.1.93"
+  },
+  "author": "getcakedieyoungx",
+  "license": "MIT"
 }
