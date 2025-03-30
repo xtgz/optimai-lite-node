@@ -37,8 +37,6 @@ npm install
 ```
 
 3. Konfigürasyon:
-   * `.env.example` dosyasını `.env` olarak kopyalayın
-   * `.env` dosyasını düzenleyerek gerekli bilgileri girin
    * `accounts.json.example` dosyasını `accounts.json` olarak kopyalayın ve hesap bilgilerinizi ekleyin
    * (Opsiyonel) Proxy kullanımı için `proxy.txt` oluşturun
 
@@ -81,11 +79,9 @@ http://kullanici:sifre@ip:port
 
 Bot, her hesap için farklı rastgele zamanlarda işlem yapar:
 
-* Ping: Her 5 dakikada bir
+* Ping: Her 5 dakikada bir (varsayılan)
 * Daily Claim: Her hesap için günde bir kez, rastgele bir saatte
 * Weekly Claim: Her hesap için haftada bir kez, rastgele bir gün ve saatte
-
-İsterseniz `.env` dosyasından CRON ayarlarını özelleştirebilirsiniz.
 
 ## Token Alma
 
